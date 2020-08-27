@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-class Callback(object):
+class LineCallback(object):
 
     def __init__(self, callback):
         self.callback = callback
@@ -12,7 +12,7 @@ class Callback(object):
             notice='or scan this QR '
         else:
             notice=''
-        self.callback('Open this link ' + notice + 'on your LINE for smartphone in 2 minutes\n' + url)
+        self.callback("Open this link " + notice + "on your LINE for smartphone in 2 minutes\n" + url)
         if showQr:
             try:
                 import pyqrcode
