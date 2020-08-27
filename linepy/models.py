@@ -1,19 +1,14 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
-from .object import LineObject
+from .object import Object
 from random import randint
 
-import json, shutil, time, os, base64, tempfile
+import json, shutil, time, os, base64, tempfile, re
     
-class LineModels(LineObject):
-
-    _channel    = None
+class Models(Object):
         
     def __init__(self):
-        LineObject.__init__(self)
-
-    def setChannelToModels(self, channel):
-        self._channel = channel
+        Object.__init__(self)
 
     """Text"""
 
@@ -33,12 +28,12 @@ class LineModels(LineObject):
         else:
             return False
 
-    def downloadFileURL(self, fileUrl, returnAs='path', saveAs=''):
+    def downloadFileURL(self, fileUrl, returnAs='path', saveAs='', headers=None):
         if returnAs not in ['path','bool','bin']:
             raise Exception('Invalid returnAs value')
         if saveAs == '':
             saveAs = self.genTempFile()
-        r = self.server.getContent(fileUrl)
+        r = self.server.getContent(fileUrl, headers=headers)
         if r.status_code != 404:
             self.saveFile(saveAs, r.raw)
             if returnAs == 'path':
@@ -52,6 +47,29 @@ class LineModels(LineObject):
 
     """Generator"""
 
+    def validateURL(self, url, returnAs='bool'):
+        if returnAs not in ['bool', 're']:
+            raise Exception('Invalid returnAs value')
+        result = re.match(self.server.URL_REGEX, url)
+        if returnAs == 'bool':
+            if result:
+                return True
+            else:
+                return False
+        return result
+
+    def findMids(self, text):
+        return self.server.MID_REGEX.findall(text)
+
+    def findGids(self, text):
+        return self.server.GID_REGEX.findall(text)
+
+    def findRids(self, text):
+        return self.server.RID_REGEX.findall(text)
+
+    def findAllIds(self, text):
+        return self.server.ALLIDS_REGEX.findall(text)
+
     def genTempFile(self, returnAs='path'):
         try:
             if returnAs not in ['file','path']:
@@ -60,7 +78,7 @@ class LineModels(LineObject):
             if returnAs == 'file':
                 return fName
             elif returnAs == 'path':
-                return '%s\%s' % (fPath, fName)
+                return os.path.join(fPath, fName)
         except:
             raise Exception('tempfile is required')
 
@@ -68,6 +86,8 @@ class LineModels(LineObject):
         oldList = {'name': self.genTempFile('file'),'ver': '1.0'}
         if returnAs not in ['json','b64','default']:
             raise Exception('Invalid parameter returnAs')
+        if 'name' in newList and not newList['name']:
+            newList['name'] = oldList['name']
         oldList.update(newList)
         if 'range' in oldList:
             new_range='bytes 0-%s\/%s' % ( str(oldList['range']-1), str(oldList['range']) )
