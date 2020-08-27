@@ -1,0 +1,12 @@
+{
+    "setKey": {
+        "key": "!",
+        "status": false
+    },
+    "autoJoin": {
+        "status": true,
+        "ticket": false,
+        "message": "Mksh udah ngundang @!",
+        "reply": true
+    }
+}
